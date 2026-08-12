@@ -259,7 +259,6 @@ animations {
 }
 
 dwindle {
-    pseudotile = true
     preserve_split = true
 }
 
@@ -278,7 +277,7 @@ bind = \$mainMod, E, exec, dolphin
 bind = \$mainMod, V, togglefloating,
 bind = \$mainMod, R, exec, wofi --show drun || rofi -show drun
 bind = \$mainMod, D, exec, wofi --show drun || rofi -show drun
-
+bind = \$mainMod, J, layoutmsg, togglesplit
 bind = \$mainMod, left, movefocus, l
 bind = \$mainMod, right, movefocus, r
 bind = \$mainMod, up, movefocus, u
