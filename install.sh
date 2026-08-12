@@ -165,7 +165,7 @@ fi
 # 2. INSTALACIÓN DE PAQUETES Y SERVICIOS BASE
 # -------------------------------------------------------------------------------
 echo -e "${GREEN}[3/7] Instalando paquetes y activando servicios de optimización...${RESET}"
-sudo pacman -S --needed --noconfirm fastfetch libva-utils ananicy-cpp gamemode pacman-contrib git curl 2>/dev/null || true
+sudo pacman -S --needed --noconfirm fastfetch libva-utils ananicy-cpp gamemode pacman-contrib git curl fzf jq 2>/dev/null || true
 
 sudo systemctl enable --now ananicy-cpp 2>/dev/null || true
 sudo systemctl enable --now fstrim.timer 2>/dev/null || true
