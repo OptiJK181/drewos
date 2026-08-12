@@ -3,7 +3,7 @@
 #                      DREWOS AUTOMATED CONFIGURATION SCRIPT
 # ===============================================================================
 # Repositorio Oficial: DrewOS Auto-Installer & System Optimizer
-# Compatible con Arch Linux, Garuda Linux, KDE Plasma 6 (Wayland) y Hyprland (Serpantinum)
+# Compatible con Arch Linux, Garuda Linux, KDE Plasma 6 (Wayland) y Hyprland
 # ===============================================================================
 
 set -e
@@ -27,15 +27,24 @@ echo "                                        "
 echo "       OFFICIAL AUTO-INSTALLER          "
 echo -e "${RESET}"
 
-# Preguntar si desea instalar Hyprland + Serpantinum Dotfiles (Opcional)
+# Opción 1: Instalar Hyprland
 INSTALL_HYPR="n"
+INSTALL_ILYAMIRO="n"
+
 if [ -n "$INSTALL_HYPRLAND" ]; then
     INSTALL_HYPR="$INSTALL_HYPRLAND"
 elif [ -t 0 ] || [ -c /dev/tty ]; then
-    echo -e "${CYAN}¿Deseas instalar Hyprland con los Dotfiles Serpantinum (Dual-Desktop)? [s/N]: ${RESET}\c"
+    echo -e "${CYAN}¿Deseas instalar Hyprland (Dual-Desktop con KDE Plasma)? [s/N]: ${RESET}\c"
     read -r response < /dev/tty || true
     if [[ "$response" =~ ^[SsYy]$ ]]; then
         INSTALL_HYPR="y"
+        
+        # Opción 2: Instalar Dotfiles de ilyamiro (serpantinum)
+        echo -e "${CYAN}¿Deseas clonar los Dotfiles oficiales de ilyamiro (serpantinum)? [s/N]: ${RESET}\c"
+        read -r response_ilyamiro < /dev/tty || true
+        if [[ "$response_ilyamiro" =~ ^[SsYy]$ ]]; then
+            INSTALL_ILYAMIRO="y"
+        fi
     fi
 fi
 
@@ -141,35 +150,148 @@ if command -v balooctl6 &>/dev/null; then
 fi
 
 # -------------------------------------------------------------------------------
-# 3. INSTALACIÓN OPCIONAL DE HYPRLAND + SERPANTINUM DOTFILES
+# 3. INSTALACIÓN DE HYPRLAND (OPCIONAL)
 # -------------------------------------------------------------------------------
 if [[ "$INSTALL_HYPR" =~ ^[SsYy]$ ]]; then
-  echo -e "${GREEN}[+] Instalando paquetes de Hyprland y clonando Serpantinum Dotfiles...${RESET}"
-  sudo pacman -S --needed --noconfirm hyprland xdg-desktop-portal-hyprland hyprpaper hyprlock hypridle waybar wofi rofi kitty cava 2>/dev/null || true
+  echo -e "${GREEN}[+] Instalando paquetes base de Hyprland...${RESET}"
+  sudo pacman -S --needed --noconfirm hyprland xdg-desktop-portal-hyprland hyprpaper hyprlock hypridle waybar wofi kitty 2>/dev/null || true
 
-  # Clonar e integrar Dotfiles de Serpantinum
-  TMP_SERP="/tmp/serpantinum_install"
-  rm -rf "$TMP_SERP"
-  sudo -u "$REAL_USER" git clone --depth 1 https://github.com/ilyamiro/serpantinum "$TMP_SERP" 2>/dev/null || true
+  if [[ "$INSTALL_ILYAMIRO" =~ ^[SsYy]$ ]]; then
+    echo -e "${GREEN}[+] Clonando repositorio oficial de ilyamiro (serpantinum) en ~/serpantinum...${RESET}"
+    sudo -u "$REAL_USER" rm -rf "$USER_HOME/serpantinum"
+    sudo -u "$REAL_USER" git clone --depth 1 https://github.com/ilyamiro/serpantinum "$USER_HOME/serpantinum" 2>/dev/null || true
+    echo -e "${YELLOW}[!] Repositorio ilyamiro/serpantinum clonado en $USER_HOME/serpantinum.${RESET}"
+  else
+    echo -e "${GREEN}[+] Aplicando configuración nativa y estable de Hyprland para Arch/Garuda...${RESET}"
+    sudo -u "$REAL_USER" mkdir -p "$USER_HOME/.config/hypr"
+    sudo -u "$REAL_USER" bash -c "cat << 'EOF' > '$USER_HOME/.config/hypr/hyprland.conf'
+monitor=,preferred,auto,1
 
-  if [ -d "$TMP_SERP/config/sessions/hyprland" ]; then
-    sudo -u "$REAL_USER" mkdir -p "$USER_HOME/.config/hypr" "$USER_HOME/.config/kitty" "$USER_HOME/.config/rofi"
-    sudo -u "$REAL_USER" cp -rf "$TMP_SERP/config/sessions/hyprland/"* "$USER_HOME/.config/hypr/" 2>/dev/null || true
-    sudo -u "$REAL_USER" cp -rf "$TMP_SERP/config/programs/kitty/kitty.conf" "$USER_HOME/.config/kitty/" 2>/dev/null || true
-    sudo -u "$REAL_USER" cp -rf "$TMP_SERP/config/programs/rofi/config.rasi" "$USER_HOME/.config/rofi/" 2>/dev/null || true
+env = XDG_CURRENT_DESKTOP,Hyprland
+env = XDG_SESSION_TYPE,wayland
+env = XDG_SESSION_DESKTOP,Hyprland
+env = QT_QPA_PLATFORM,wayland;xcb
+env = ELECTRON_OZONE_PLATFORM_HINT,auto
 
-    # Definir colores por defecto si no existen
-    sudo -u "$REAL_USER" bash -c "cat << 'EOF' > '$USER_HOME/.config/hypr/colors.conf'
-\$active_border = rgba(33ccffee) rgba(00ff99ee) 45deg
-\$inactive_border = rgba(595959aa)
+exec-once = dbus-update-activation-environment --systemd WAYLAND_DISPLAY XDG_CURRENT_DESKTOP
+exec-once = systemctl --user import-environment WAYLAND_DISPLAY XDG_CURRENT_DESKTOP
+exec-once = waybar &
+exec-once = hyprpaper &
+exec-once = /usr/lib/polkit-kde-authentication-agent-1 &
+
+input {
+    kb_layout = latam
+    kb_variant =
+    kb_model = pc105
+    follow_mouse = 1
+    touchpad {
+        natural_scroll = true
+    }
+    sensitivity = 0
+}
+
+general {
+    gaps_in = 5
+    gaps_out = 10
+    border_size = 2
+    col.active_border = rgba(33ccffee) rgba(00ff99ee) 45deg
+    col.inactive_border = rgba(595959aa)
+    layout = dwindle
+    allow_tearing = false
+}
+
+decoration {
+    rounding = 10
+    blur {
+        enabled = true
+        size = 5
+        passes = 2
+        vibrancy = 0.1696
+    }
+    shadow {
+        enabled = false
+    }
+}
+
+animations {
+    enabled = true
+    bezier = myBezier, 0.05, 0.9, 0.1, 1.05
+    animation = windows, 1, 7, myBezier
+    animation = windowsOut, 1, 7, default, popin 80%
+    animation = border, 1, 10, default
+    animation = borderangle, 1, 8, default
+    animation = fade, 1, 7, default
+    animation = workspaces, 1, 6, default
+}
+
+dwindle {
+    pseudotile = true
+    preserve_split = true
+}
+
+\$mainMod = SUPER
+
+bind = \$mainMod, RETURN, exec, kitty
+bind = \$mainMod, Q, killactive,
+bind = \$mainMod, M, exit,
+bind = \$mainMod, E, exec, dolphin
+bind = \$mainMod, V, togglefloating,
+bind = \$mainMod, R, exec, wofi --show drun || rofi -show drun
+bind = \$mainMod, D, exec, wofi --show drun || rofi -show drun
+
+bind = \$mainMod, left, movefocus, l
+bind = \$mainMod, right, movefocus, r
+bind = \$mainMod, up, movefocus, u
+bind = \$mainMod, down, movefocus, d
+
+bind = \$mainMod, 1, workspace, 1
+bind = \$mainMod, 2, workspace, 2
+bind = \$mainMod, 3, workspace, 3
+bind = \$mainMod, 4, workspace, 4
+bind = \$mainMod, 5, workspace, 5
+bind = \$mainMod, 6, workspace, 6
+bind = \$mainMod, 7, workspace, 7
+bind = \$mainMod, 8, workspace, 8
+bind = \$mainMod, 9, workspace, 9
+bind = \$mainMod, 0, workspace, 10
+
+bind = \$mainMod SHIFT, 1, movetoworkspace, 1
+bind = \$mainMod SHIFT, 2, movetoworkspace, 2
+bind = \$mainMod SHIFT, 3, movetoworkspace, 3
+bind = \$mainMod SHIFT, 4, movetoworkspace, 4
+bind = \$mainMod SHIFT, 5, movetoworkspace, 5
+
+bindm = \$mainMod, mouse:272, movewindow
+bindm = \$mainMod, mouse:273, resizewindow
 EOF"
 
-    # Configurar distribución de teclado LATAM
-    if [ -f "$USER_HOME/.config/hypr/config/settings.conf" ]; then
-      sudo -u "$REAL_USER" sed -i 's/kb_layout =.*/kb_layout = latam/' "$USER_HOME/.config/hypr/config/settings.conf" 2>/dev/null || true
-    fi
+    sudo -u "$REAL_USER" mkdir -p "$USER_HOME/.config/waybar"
+    sudo -u "$REAL_USER" bash -c "cat << 'EOF' > '$USER_HOME/.config/waybar/config.jsonc'
+{
+    \"layer\": \"top\",
+    \"position\": \"top\",
+    \"height\": 30,
+    \"modules-left\": [\"hyprland/workspaces\", \"hyprland/window\"],
+    \"modules-center\": [\"clock\"],
+    \"modules-right\": [\"pulseaudio\", \"network\", \"cpu\", \"memory\", \"battery\", \"tray\"],
+    \"hyprland/workspaces\": { \"disable-scroll\": true, \"all-outputs\": true, \"format\": \"{name}\" },
+    \"clock\": { \"format\": \"🕒 {:%H:%M | %a %d %b}\" },
+    \"cpu\": { \"format\": \"💻 {usage}%\" },
+    \"memory\": { \"format\": \"🧠 {}%\" },
+    \"network\": { \"format-wifi\": \"📶 {essid}\", \"format-ethernet\": \"🌐 Connected\", \"format-disconnected\": \"⚠️ Disconnected\" },
+    \"pulseaudio\": { \"format\": \"🔊 {volume}%\" },
+    \"battery\": { \"format\": \"🔋 {capacity}%\" }
+}
+EOF"
+
+    sudo -u "$REAL_USER" bash -c "cat << 'EOF' > '$USER_HOME/.config/waybar/style.css'
+* { border: none; font-family: 'JetBrains Mono', sans-serif; font-size: 13px; }
+window#waybar { background-color: rgba(18, 18, 24, 0.85); color: #ffffff; border-bottom: 2px solid #33ccff; }
+#workspaces button { padding: 0 8px; color: #888888; }
+#workspaces button.active { color: #33ccff; border-bottom: 2px solid #00ff99; }
+#clock, #battery, #cpu, #memory, #network, #pulseaudio, #tray { padding: 0 10px; margin: 2px 4px; border-radius: 6px; background-color: rgba(255, 255, 255, 0.1); }
+EOF"
   fi
-  rm -rf "$TMP_SERP"
 else
   echo -e "${YELLOW}[!] Omitiendo instalación de Hyprland. Se mantendrá el entorno gráfico predeterminado.${RESET}"
 fi
