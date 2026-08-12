@@ -3,7 +3,7 @@
 #                      DREWOS AUTOMATED CONFIGURATION SCRIPT
 # ===============================================================================
 # Repositorio Oficial: DrewOS Auto-Installer & System Optimizer
-# Compatible con Arch Linux, Garuda Linux y entornos KDE Plasma 6 (Wayland)
+# Compatible con Arch Linux, Garuda Linux, KDE Plasma 6 (Wayland) y Hyprland
 # ===============================================================================
 
 set -e
@@ -28,7 +28,7 @@ echo "       OFFICIAL AUTO-INSTALLER          "
 echo -e "${RESET}"
 
 # Solicitar permisos sudo al inicio
-echo -e "${YELLOW}[1/7] Solicitando permisos sudo para la configuración del sistema...${RESET}"
+echo -e "${YELLOW}[1/8] Solicitando permisos sudo para la configuración del sistema...${RESET}"
 sudo -v
 
 # Mantener sudo activo mientras se ejecuta el script
@@ -37,7 +37,7 @@ while true; do sudo -n true; sleep 60; kill -0 "$$" || exit; done 2>/dev/null &
 # -------------------------------------------------------------------------------
 # 1. BRANDING VISUAL DREWOS
 # -------------------------------------------------------------------------------
-echo -e "${GREEN}[2/7] Aplicando branding visual DrewOS (os-release, GRUB, Fastfetch)...${RESET}"
+echo -e "${GREEN}[2/8] Aplicando branding visual DrewOS (os-release, GRUB, Fastfetch)...${RESET}"
 
 sudo rm -f /etc/os-release
 sudo bash -c 'cat << "EOF" > /etc/os-release
@@ -115,7 +115,7 @@ fi
 # -------------------------------------------------------------------------------
 # 2. INSTALACIÓN DE PAQUETES Y SERVICIOS BASE
 # -------------------------------------------------------------------------------
-echo -e "${GREEN}[3/7] Instalando paquetes y activando servicios de optimización...${RESET}"
+echo -e "${GREEN}[3/8] Instalando paquetes y activando servicios de optimización...${RESET}"
 sudo pacman -S --needed --noconfirm fastfetch libva-utils ananicy-cpp gamemode pacman-contrib 2>/dev/null || true
 
 sudo systemctl enable --now ananicy-cpp 2>/dev/null || true
@@ -129,9 +129,122 @@ if command -v balooctl6 &>/dev/null; then
 fi
 
 # -------------------------------------------------------------------------------
-# 3. ENTORNO GLOBAL WAYLAND Y ACELERACIÓN GPU ELECTRON / FLATPAK
+# 3. INSTALACIÓN E INTEGRACIÓN DE HYPRLAND DUAL-DESKTOP
 # -------------------------------------------------------------------------------
-echo -e "${GREEN}[4/7] Configurando Wayland nativo y aceleración por GPU Intel (VA-API)...${RESET}"
+echo -e "${GREEN}[4/8] Instalando y configurando Hyprland para soporte Dual-Desktop (KDE + Hyprland)...${RESET}"
+sudo pacman -S --needed --noconfirm hyprland xdg-desktop-portal-hyprland hyprpaper hyprlock hypridle waybar wofi kitty 2>/dev/null || true
+
+# Crear configuración de Hyprland para el usuario
+sudo -u "$REAL_USER" mkdir -p "$USER_HOME/.config/hypr"
+sudo -u "$REAL_USER" bash -c "cat << 'EOF' > '$USER_HOME/.config/hypr/hyprland.conf'
+monitor=,preferred,auto,1
+
+exec-once = dbus-update-activation-environment --systemd WAYLAND_DISPLAY XDG_CURRENT_DESKTOP=Hyprland
+exec-once = systemctl --user import-environment WAYLAND_DISPLAY XDG_CURRENT_DESKTOP
+exec-once = waybar &
+exec-once = hyprpaper &
+exec-once = /usr/lib/polkit-kde-authentication-agent-1 &
+
+input {
+    kb_layout = latam
+    follow_mouse = 1
+    touchpad {
+        natural_scroll = true
+    }
+}
+
+general {
+    gaps_in = 5
+    gaps_out = 10
+    border_size = 2
+    col.active_border = rgba(33ccffee) rgba(00ff99ee) 45deg
+    col.inactive_border = rgba(595959aa)
+    layout = dwindle
+}
+
+decoration {
+    rounding = 10
+    blur {
+        enabled = true
+        size = 5
+        passes = 2
+    }
+}
+
+animations {
+    enabled = true
+    bezier = myBezier, 0.05, 0.9, 0.1, 1.05
+    animation = windows, 1, 7, myBezier
+    animation = workspaces, 1, 6, default
+}
+
+dwindle {
+    pseudotile = true
+    preserve_split = true
+}
+
+\$mainMod = SUPER
+bind = \$mainMod, RETURN, exec, kitty
+bind = \$mainMod, Q, killactive,
+bind = \$mainMod, M, exit,
+bind = \$mainMod, E, exec, dolphin
+bind = \$mainMod, V, togglefloating,
+bind = \$mainMod, R, exec, wofi --show drun
+bind = \$mainMod, D, exec, wofi --show drun
+
+bind = \$mainMod, left, movefocus, l
+bind = \$mainMod, right, movefocus, r
+bind = \$mainMod, up, movefocus, u
+bind = \$mainMod, down, movefocus, d
+
+bind = \$mainMod, 1, workspace, 1
+bind = \$mainMod, 2, workspace, 2
+bind = \$mainMod, 3, workspace, 3
+bind = \$mainMod, 4, workspace, 4
+bind = \$mainMod, 5, workspace, 5
+
+bind = \$mainMod SHIFT, 1, movetoworkspace, 1
+bind = \$mainMod SHIFT, 2, movetoworkspace, 2
+bind = \$mainMod SHIFT, 3, movetoworkspace, 3
+bind = \$mainMod SHIFT, 4, movetoworkspace, 4
+bind = \$mainMod SHIFT, 5, movetoworkspace, 5
+
+bindm = \$mainMod, mouse:272, movewindow
+bindm = \$mainMod, mouse:273, resizewindow
+EOF"
+
+# Configuración Waybar
+sudo -u "$REAL_USER" mkdir -p "$USER_HOME/.config/waybar"
+sudo -u "$REAL_USER" bash -c "cat << 'EOF' > '$USER_HOME/.config/waybar/config.jsonc'
+{
+    \"layer\": \"top\",
+    \"position\": \"top\",
+    \"height\": 30,
+    \"modules-left\": [\"hyprland/workspaces\", \"hyprland/window\"],
+    \"modules-center\": [\"clock\"],
+    \"modules-right\": [\"pulseaudio\", \"network\", \"cpu\", \"memory\", \"battery\", \"tray\"],
+    \"hyprland/workspaces\": { \"disable-scroll\": true, \"all-outputs\": true, \"format\": \"{name}\" },
+    \"clock\": { \"format\": \"🕒 {:%H:%M | %a %d %b}\" },
+    \"cpu\": { \"format\": \"💻 {usage}%\" },
+    \"memory\": { \"format\": \"🧠 {}%\" },
+    \"network\": { \"format-wifi\": \"📶 {essid}\", \"format-ethernet\": \"🌐 Connected\", \"format-disconnected\": \"⚠️ Disconnected\" },
+    \"pulseaudio\": { \"format\": \"🔊 {volume}%\" },
+    \"battery\": { \"format\": \"🔋 {capacity}%\" }
+}
+EOF"
+
+sudo -u "$REAL_USER" bash -c "cat << 'EOF' > '$USER_HOME/.config/waybar/style.css'
+* { border: none; font-family: 'JetBrains Mono', sans-serif; font-size: 13px; }
+window#waybar { background-color: rgba(18, 18, 24, 0.85); color: #ffffff; border-bottom: 2px solid #33ccff; }
+#workspaces button { padding: 0 8px; color: #888888; }
+#workspaces button.active { color: #33ccff; border-bottom: 2px solid #00ff99; }
+#clock, #battery, #cpu, #memory, #network, #pulseaudio, #tray { padding: 0 10px; margin: 2px 4px; border-radius: 6px; background-color: rgba(255, 255, 255, 0.1); }
+EOF"
+
+# -------------------------------------------------------------------------------
+# 4. ENTORNO GLOBAL WAYLAND Y ACELERACIÓN GPU ELECTRON / FLATPAK
+# -------------------------------------------------------------------------------
+echo -e "${GREEN}[5/8] Configurando Wayland nativo y aceleración por GPU Intel (VA-API)...${RESET}"
 
 sudo -u "$REAL_USER" mkdir -p "$USER_HOME/.config/environment.d"
 sudo -u "$REAL_USER" bash -c "cat << 'EOF' > '$USER_HOME/.config/environment.d/wayland.conf'
@@ -192,18 +305,18 @@ if command -v flatpak &>/dev/null; then
 fi
 
 # -------------------------------------------------------------------------------
-# 4. CONFIGURACIÓN DE SPICETIFY (SPOTIFY THEMES)
+# 5. CONFIGURACIÓN DE SPICETIFY (SPOTIFY THEMES)
 # -------------------------------------------------------------------------------
-echo -e "${GREEN}[5/7] Configurando Spicetify para Spotify...${RESET}"
+echo -e "${GREEN}[6/8] Configurando Spicetify para Spotify...${RESET}"
 if command -v spicetify &>/dev/null; then
   sudo -u "$REAL_USER" spicetify config overwrite_assets 1 inject_css 1 replace_colors 1 inject_theme_js 1 2>/dev/null || true
   sudo -u "$REAL_USER" spicetify apply 2>/dev/null || true
 fi
 
 # -------------------------------------------------------------------------------
-# 5. OPTIMIZACIÓN MÁXIMA DE WI-FI 6 E INTERNET (GOOGLE BBR)
+# 6. OPTIMIZACIÓN MÁXIMA DE WI-FI 6 E INTERNET (GOOGLE BBR)
 # -------------------------------------------------------------------------------
-echo -e "${GREEN}[6/7] Optimizando Wi-Fi (Power Save OFF) y activando Google BBR TCP...${RESET}"
+echo -e "${GREEN}[7/8] Optimizando Wi-Fi (Power Save OFF) y activando Google BBR TCP...${RESET}"
 
 # Desactivar Power Save en NetworkManager
 sudo mkdir -p /etc/NetworkManager/conf.d
@@ -239,9 +352,9 @@ sudo sysctl --system 2>/dev/null || true
 sudo systemctl restart NetworkManager 2>/dev/null || true
 
 # -------------------------------------------------------------------------------
-# 6. CONFIGURACIÓN DE TECLADO LATAM
+# 7. CONFIGURACIÓN DE TECLADO LATAM
 # -------------------------------------------------------------------------------
-echo -e "${GREEN}[7/7] Estableciendo idioma de teclado en Español Latinoamérica (LATAM)...${RESET}"
+echo -e "${GREEN}[8/8] Estableciendo idioma de teclado en Español Latinoamérica (LATAM)...${RESET}"
 sudo localectl set-keymap latam 2>/dev/null || true
 sudo localectl set-x11-keymap latam 2>/dev/null || true
 
@@ -259,6 +372,6 @@ VariantList=
 EOF"
 
 echo -e "\n${CYAN}${BOLD}===============================================================================${RESET}"
-echo -e "${CYAN}${BOLD}   ¡CONFIGURACIÓN DE DREWOS APLICADA CON ÉXITO A TU SISTEMA!   ${RESET}"
+echo -e "${CYAN}${BOLD}   ¡CONFIGURACIÓN DE DREWOS (KDE + HYPRLAND) APLICADA CON ÉXITO!   ${RESET}"
 echo -e "${CYAN}${BOLD}===============================================================================${RESET}"
-echo -e "${YELLOW}Ejecuta 'fastfetch' para ver el nuevo branding o abre una nueva terminal.${RESET}\n"
+echo -e "${YELLOW}Puedes seleccionar KDE Plasma o Hyprland en la pantalla de inicio (SDDM).${RESET}\n"
