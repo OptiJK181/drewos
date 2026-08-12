@@ -27,7 +27,7 @@
 Para transformar tu sistema y aplicar todas las optimizaciones automáticamente, abre tu terminal y ejecuta:
 
 ```bash
-curl -sSL https://raw.githubusercontent.com/TU_USUARIO/drewos/main/install.sh | bash
+curl -sSL https://raw.githubusercontent.com/OptiJK181/drewos/main/install.sh | bash
 ```
 
 ---
@@ -70,7 +70,7 @@ curl -sSL https://raw.githubusercontent.com/TU_USUARIO/drewos/main/install.sh | 
 Si prefieres clonar el repositorio e inspeccionar el código antes de ejecutarlo:
 
 ```bash
-git clone https://github.com/TU_USUARIO/drewos.git
+git clone https://github.com/OptiJK181/drewos.git
 cd drewos
 chmod +x install.sh
 ./install.sh
