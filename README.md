@@ -35,10 +35,12 @@ curl -sSL https://raw.githubusercontent.com/OptiJK181/drewos/main/install.sh | b
 
 ## ✨ Características Principales
 
-### 🪟 1. Soporte Dual Desktop Elegible (KDE Plasma 6 + Hyprland Opcional)
+### 🪟 1. Soporte Dual Desktop Elegible (KDE Plasma 6 + Hyprland + Serpantinum Dotfiles)
 - El instalador te **pregunta de forma interactiva** si deseas instalar Hyprland o mantener únicamente tu entorno actual (KDE Plasma 6).
-- Si eliges **Sí**, configura e instala automáticamente **Hyprland** (`hyprland.conf`), **Waybar** estilizado (`waybar`), lanzador de apps (`wofi`), terminal (`kitty`), daemon de fondos (`hyprpaper`) y bloqueo de pantalla (`hyprlock`).
-- Configuración de teclado **Español Latinoamérica (LATAM)** nativa en ambos entornos.
+- Si eliges **Sí**, clona e integra automáticamente la suit de **Dotfiles de [Serpantinum (ilyamiro)](https://github.com/ilyamiro/serpantinum)**:
+  - Estructura modular de **Hyprland** (`hyprland.conf`, `settings.conf`, `keybindings.conf`, `rules.conf`, `monitors.conf`).
+  - Terminal **Kitty**, lanzador de temas **Rofi**, visualizador **Cava** y control de volumen **SwayOSD**.
+- Mantiene la configuración de teclado en **Español Latinoamérica (LATAM)** nativa.
 
 ### 🎨 2. Personalización de Marca (DrewOS)
 - Actualiza automáticamente la identidad visual en **Fastfetch**, **Información del Sistema KDE Plasma** y **GRUB Bootloader**.
