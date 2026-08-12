@@ -190,6 +190,10 @@ if [ -t 0 ] || [ -c /dev/tty ]; then
         echo -e "${CYAN}¿Deseas ejecutar de inmediato el instalador oficial de Dotfiles de ilyamiro? [s/N]: ${RESET}\c"
         read -r response_ilyamiro < /dev/tty || true
         if [[ "$response_ilyamiro" =~ ^[SsYy]$ ]]; then
+            echo -e "${GREEN}[+] Deshabilitando waybar.service para evitar barras duplicadas con Quickshell...${RESET}"
+            sudo -u "$REAL_USER" systemctl --user disable --now waybar.service 2>/dev/null || true
+            kill -9 $(pgrep -x waybar) 2>/dev/null || true
+            kill -9 $(pgrep -x quickshell) 2>/dev/null || true
             echo -e "${GREEN}[+] Ejecutando instalador oficial de ilyamiro (imperative-dots) EN VIVO con TTY...${RESET}"
             curl -fsSL https://raw.githubusercontent.com/ilyamiro/imperative-dots/master/install.sh -o /tmp/ilyamiro_install.sh
             chmod +x /tmp/ilyamiro_install.sh
