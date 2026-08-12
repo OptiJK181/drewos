@@ -67,14 +67,38 @@ if [ -f /etc/default/grub ]; then
   sudo grub-mkconfig -o /boot/grub/grub.cfg 2>/dev/null || true
 fi
 
-# Configuración Fastfetch
+# Logo Tornado DrewOS
+DREWOS_LOGO='          -_-_-_-_-_-_-_-_-_-_-_-_---
+           -_-_-_-_-_-_-_-_-_-_-_--
+            -_-_-_-_-_-_-_-_-_-_--
+              -_-_-_-_-_-_-_-_-_-
+               -_-_-_-_-_-_-_-_-
+                 -_-_-_-_-_-_--
+                   -_-_-_-_-_-
+                    -_-_-_-_-
+                      -_-__-
+                       _-_-
+                      _-_
+                     _-
+                     -_
+                    _-_
+                   _-_-_
+                  -_-_-_-_'
+
 sudo -u "$REAL_USER" mkdir -p "$USER_HOME/.config/fastfetch"
+sudo -u "$REAL_USER" mkdir -p "$USER_HOME/Logos DrewOS"
+echo "$DREWOS_LOGO" | sudo -u "$REAL_USER" tee "$USER_HOME/.config/fastfetch/drewos_logo.txt" "$USER_HOME/Logos DrewOS/tornado.txt" > /dev/null
+
 sudo -u "$REAL_USER" bash -c "cat << 'EOF' > '$USER_HOME/.config/fastfetch/config.jsonc'
 {
     \"\$schema\": \"https://github.com/fastfetch-cli/fastfetch/raw/dev/doc/json_schema.json\",
     \"logo\": {
-        \"source\": \"arch_small\",
-        \"type\": \"small\",
+        \"source\": \"~/.config/fastfetch/drewos_logo.txt\",
+        \"type\": \"file\",
+        \"color\": {
+            \"1\": \"cyan\",
+            \"2\": \"blue\"
+        },
         \"padding\": {
             \"top\": 1,
             \"left\": 1,
@@ -107,8 +131,8 @@ EOF"
 
 # Hook en Fish shell si existe
 if [ -d "$USER_HOME/.config/fish" ]; then
-  if ! grep -q "fastfetch --logo arch_small" "$USER_HOME/.config/fish/config.fish" 2>/dev/null; then
-    echo -e "\n# DrewOS Fastfetch\nfastfetch --logo arch_small" >> "$USER_HOME/.config/fish/config.fish"
+  if ! grep -q "fastfetch" "$USER_HOME/.config/fish/config.fish" 2>/dev/null; then
+    echo -e "\n# DrewOS Fastfetch\nfastfetch" >> "$USER_HOME/.config/fish/config.fish"
   fi
 fi
 
