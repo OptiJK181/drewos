@@ -27,27 +27,6 @@ echo "                                        "
 echo "       OFFICIAL AUTO-INSTALLER          "
 echo -e "${RESET}"
 
-# Opción 1: Instalar Hyprland
-INSTALL_HYPR="n"
-INSTALL_ILYAMIRO="n"
-
-if [ -n "$INSTALL_HYPRLAND" ]; then
-    INSTALL_HYPR="$INSTALL_HYPRLAND"
-elif [ -t 0 ] || [ -c /dev/tty ]; then
-    echo -e "${CYAN}¿Deseas instalar Hyprland (Dual-Desktop con KDE Plasma)? [s/N]: ${RESET}\c"
-    read -r response < /dev/tty || true
-    if [[ "$response" =~ ^[SsYy]$ ]]; then
-        INSTALL_HYPR="y"
-        
-        # Opción 2: Ejcutar instalador oficial de ilyamiro (imperative-dots)
-        echo -e "${CYAN}¿Deseas ejecutar el instalador oficial de Dotfiles de ilyamiro? [s/N]: ${RESET}\c"
-        read -r response_ilyamiro < /dev/tty || true
-        if [[ "$response_ilyamiro" =~ ^[SsYy]$ ]]; then
-            INSTALL_ILYAMIRO="y"
-        fi
-    fi
-fi
-
 # Solicitar permisos sudo al inicio
 echo -e "${YELLOW}[1/7] Solicitando permisos sudo para la configuración del sistema...${RESET}"
 sudo -v
@@ -150,19 +129,24 @@ if command -v balooctl6 &>/dev/null; then
 fi
 
 # -------------------------------------------------------------------------------
-# 3. INSTALACIÓN DE HYPRLAND (OPCIONAL)
+# 3. PREGUNTA Y EJECUCIÓN INMEDIATA DE HYPRLAND / ILYAMIRO
 # -------------------------------------------------------------------------------
-if [[ "$INSTALL_HYPR" =~ ^[SsYy]$ ]]; then
-  echo -e "${GREEN}[+] Instalando paquetes base de Hyprland...${RESET}"
-  sudo pacman -S --needed --noconfirm hyprland xdg-desktop-portal-hyprland hyprpaper hyprlock hypridle waybar wofi kitty 2>/dev/null || true
+if [ -t 0 ] || [ -c /dev/tty ]; then
+    echo -e "${CYAN}¿Deseas instalar Hyprland (Dual-Desktop con KDE Plasma)? [s/N]: ${RESET}\c"
+    read -r response < /dev/tty || true
+    if [[ "$response" =~ ^[SsYy]$ ]]; then
+        echo -e "${GREEN}[+] Instalando paquetes de Hyprland de inmediato...${RESET}"
+        sudo pacman -S --needed --noconfirm hyprland xdg-desktop-portal-hyprland hyprpaper hyprlock hypridle waybar wofi kitty 2>/dev/null || true
 
-  if [[ "$INSTALL_ILYAMIRO" =~ ^[SsYy]$ ]]; then
-    echo -e "${GREEN}[+] Ejecutando instalador oficial de Dotfiles de ilyamiro (imperative-dots)...${RESET}"
-    sudo -u "$REAL_USER" bash -c "$(curl -fsSL https://raw.githubusercontent.com/ilyamiro/imperative-dots/master/install.sh)" || true
-  else
-    echo -e "${GREEN}[+] Aplicando configuración nativa y estable de Hyprland para Arch/Garuda...${RESET}"
-    sudo -u "$REAL_USER" mkdir -p "$USER_HOME/.config/hypr"
-    sudo -u "$REAL_USER" bash -c "cat << 'EOF' > '$USER_HOME/.config/hypr/hyprland.conf'
+        echo -e "${CYAN}¿Deseas ejecutar de inmediato el instalador oficial de Dotfiles de ilyamiro? [s/N]: ${RESET}\c"
+        read -r response_ilyamiro < /dev/tty || true
+        if [[ "$response_ilyamiro" =~ ^[SsYy]$ ]]; then
+            echo -e "${GREEN}[+] Ejecutando instalador oficial de ilyamiro (imperative-dots) EN VIVO...${RESET}"
+            sudo -u "$REAL_USER" bash -c "$(curl -fsSL https://raw.githubusercontent.com/ilyamiro/imperative-dots/master/install.sh)" || true
+        else
+            echo -e "${GREEN}[+] Aplicando configuración nativa y limpia de Hyprland para Arch/Garuda...${RESET}"
+            sudo -u "$REAL_USER" mkdir -p "$USER_HOME/.config/hypr"
+            sudo -u "$REAL_USER" bash -c "cat << 'EOF' > '$USER_HOME/.config/hypr/hyprland.conf'
 monitor=,preferred,auto,1
 
 env = XDG_CURRENT_DESKTOP,Hyprland
@@ -263,8 +247,8 @@ bindm = \$mainMod, mouse:272, movewindow
 bindm = \$mainMod, mouse:273, resizewindow
 EOF"
 
-    sudo -u "$REAL_USER" mkdir -p "$USER_HOME/.config/waybar"
-    sudo -u "$REAL_USER" bash -c "cat << 'EOF' > '$USER_HOME/.config/waybar/config.jsonc'
+            sudo -u "$REAL_USER" mkdir -p "$USER_HOME/.config/waybar"
+            sudo -u "$REAL_USER" bash -c "cat << 'EOF' > '$USER_HOME/.config/waybar/config.jsonc'
 {
     \"layer\": \"top\",
     \"position\": \"top\",
@@ -282,16 +266,15 @@ EOF"
 }
 EOF"
 
-    sudo -u "$REAL_USER" bash -c "cat << 'EOF' > '$USER_HOME/.config/waybar/style.css'
+            sudo -u "$REAL_USER" bash -c "cat << 'EOF' > '$USER_HOME/.config/waybar/style.css'
 * { border: none; font-family: 'JetBrains Mono', sans-serif; font-size: 13px; }
 window#waybar { background-color: rgba(18, 18, 24, 0.85); color: #ffffff; border-bottom: 2px solid #33ccff; }
 #workspaces button { padding: 0 8px; color: #888888; }
 #workspaces button.active { color: #33ccff; border-bottom: 2px solid #00ff99; }
 #clock, #battery, #cpu, #memory, #network, #pulseaudio, #tray { padding: 0 10px; margin: 2px 4px; border-radius: 6px; background-color: rgba(255, 255, 255, 0.1); }
 EOF"
-  fi
-else
-  echo -e "${YELLOW}[!] Omitiendo instalación de Hyprland. Se mantendrá el entorno gráfico predeterminado.${RESET}"
+        fi
+    fi
 fi
 
 # -------------------------------------------------------------------------------
