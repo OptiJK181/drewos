@@ -55,7 +55,7 @@ PRIVACY_POLICY_URL="https://terms.archlinux.org/docs/privacy-policy/"
 LOGO=drewos
 EOF'
 
-# Instalar Logo de Imagen PNG de DrewOS en el sistema (KDE Plasma, Apps)
+# Instalar Logo PNG de DrewOS
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" 2>/dev/null && pwd)"
 if [ -f "$SCRIPT_DIR/logos/tornado.png" ]; then
   sudo cp "$SCRIPT_DIR/logos/tornado.png" /usr/share/pixmaps/drewos.png 2>/dev/null || true
@@ -184,7 +184,7 @@ if [ -t 0 ] || [ -c /dev/tty ]; then
     echo -e "${CYAN}¿Deseas instalar Hyprland (Dual-Desktop con KDE Plasma)? [s/N]: ${RESET}\c"
     read -r response < /dev/tty || true
     if [[ "$response" =~ ^[SsYy]$ ]]; then
-        echo -e "${GREEN}[+] Instalando paquetes base de Hyprland + hyprlang2lua (Lua config, ready for 0.57+)...${RESET}"
+        echo -e "${GREEN}[+] Instalando paquetes de Hyprland de inmediato...${RESET}"
         sudo pacman -S --needed --noconfirm hyprland xdg-desktop-portal-hyprland hyprpaper hyprlock hypridle waybar wofi kitty hyprlang2lua 2>/dev/null || true
 
         echo -e "${CYAN}¿Deseas ejecutar de inmediato el instalador oficial de Dotfiles de ilyamiro? [s/N]: ${RESET}\c"
@@ -193,18 +193,127 @@ if [ -t 0 ] || [ -c /dev/tty ]; then
             echo -e "${GREEN}[+] Ejecutando instalador oficial de ilyamiro (imperative-dots) EN VIVO...${RESET}"
             sudo -u "$REAL_USER" bash -c "$(curl -fsSL https://raw.githubusercontent.com/ilyamiro/imperative-dots/master/install.sh)" || true
         else
-            echo -e "${GREEN}[+] Aplicando configuración DrewOS en formato Lua (compatible Hyprland 0.57+)...${RESET}"
+            echo -e "${GREEN}[+] Aplicando configuración DrewOS en .conf y .lua (compatible Hyprland 0.56 y 0.57+)...${RESET}"
             sudo -u "$REAL_USER" mkdir -p "$USER_HOME/.config/hypr"
+
+            # 1. ARCHIVO HYPRLAND.CONF (HYPRLAND 0.56 Y ANTERIORES)
+            sudo -u "$REAL_USER" bash -c "cat << 'EOF' > '$USER_HOME/.config/hypr/hyprland.conf'
+monitor=,preferred,auto,1
+
+env = XDG_CURRENT_DESKTOP,Hyprland
+env = XDG_SESSION_TYPE,wayland
+env = XDG_SESSION_DESKTOP,Hyprland
+env = QT_QPA_PLATFORM,wayland;xcb
+env = ELECTRON_OZONE_PLATFORM_HINT,auto
+env = LIBVA_DRIVER_NAME,iHD
+
+exec-once = dbus-update-activation-environment --systemd WAYLAND_DISPLAY XDG_CURRENT_DESKTOP
+exec-once = systemctl --user import-environment WAYLAND_DISPLAY XDG_CURRENT_DESKTOP
+exec-once = waybar &
+exec-once = hyprpaper &
+exec-once = /usr/lib/polkit-kde-authentication-agent-1 &
+
+input {
+    kb_layout = latam
+    kb_variant =
+    kb_model = pc105
+    follow_mouse = 1
+    touchpad {
+        natural_scroll = true
+    }
+    sensitivity = 0
+}
+
+general {
+    gaps_in = 5
+    gaps_out = 10
+    border_size = 2
+    col.active_border = rgba(33ccffee) rgba(00ff99ee) 45deg
+    col.inactive_border = rgba(595959aa)
+    layout = dwindle
+    allow_tearing = false
+}
+
+decoration {
+    rounding = 10
+    blur {
+        enabled = true
+        size = 5
+        passes = 2
+        vibrancy = 0.1696
+    }
+    shadow {
+        enabled = false
+    }
+}
+
+animations {
+    enabled = true
+    bezier = myBezier, 0.05, 0.9, 0.1, 1.05
+    animation = windows, 1, 7, myBezier
+    animation = windowsOut, 1, 7, default, popin 80%
+    animation = border, 1, 10, default
+    animation = borderangle, 1, 8, default
+    animation = fade, 1, 7, default
+    animation = workspaces, 1, 6, default
+}
+
+dwindle {
+    pseudotile = true
+    preserve_split = true
+}
+
+misc {
+    disable_hyprland_logo = true
+    disable_splash_rendering = true
+    font_family = JetBrains Mono
+}
+
+\$mainMod = SUPER
+
+bind = \$mainMod, RETURN, exec, kitty
+bind = \$mainMod, Q, killactive,
+bind = \$mainMod, M, exit,
+bind = \$mainMod, E, exec, dolphin
+bind = \$mainMod, V, togglefloating,
+bind = \$mainMod, R, exec, wofi --show drun || rofi -show drun
+bind = \$mainMod, D, exec, wofi --show drun || rofi -show drun
+
+bind = \$mainMod, left, movefocus, l
+bind = \$mainMod, right, movefocus, r
+bind = \$mainMod, up, movefocus, u
+bind = \$mainMod, down, movefocus, d
+
+bind = \$mainMod, 1, workspace, 1
+bind = \$mainMod, 2, workspace, 2
+bind = \$mainMod, 3, workspace, 3
+bind = \$mainMod, 4, workspace, 4
+bind = \$mainMod, 5, workspace, 5
+bind = \$mainMod, 6, workspace, 6
+bind = \$mainMod, 7, workspace, 7
+bind = \$mainMod, 8, workspace, 8
+bind = \$mainMod, 9, workspace, 9
+bind = \$mainMod, 0, workspace, 10
+
+bind = \$mainMod SHIFT, 1, movetoworkspace, 1
+bind = \$mainMod SHIFT, 2, movetoworkspace, 2
+bind = \$mainMod SHIFT, 3, movetoworkspace, 3
+bind = \$mainMod SHIFT, 4, movetoworkspace, 4
+bind = \$mainMod SHIFT, 5, movetoworkspace, 5
+
+bindm = \$mainMod, mouse:272, movewindow
+bindm = \$mainMod, mouse:273, resizewindow
+EOF"
+
+            # 2. ARCHIVO HYPRLAND.LUA (HYPRLAND 0.57+ LUA NATIVO)
             sudo -u "$REAL_USER" bash -c "cat << 'EOF' > '$USER_HOME/.config/hypr/hyprland.lua'
 -- =============================================================================
 --                     DREWOS HYPRLAND CONFIG (LUA)
 --          Compatible con Hyprland 0.55+ / 0.57+ - Formato Lua nativo
 -- =============================================================================
 
--- MONITORES
 hl.monitor(\"\", \"preferred\", \"auto\", 1)
 
--- VARIABLES DE ENTORNO
 hl.env(\"XDG_CURRENT_DESKTOP\", \"Hyprland\")
 hl.env(\"XDG_SESSION_TYPE\", \"wayland\")
 hl.env(\"XDG_SESSION_DESKTOP\", \"Hyprland\")
@@ -212,14 +321,12 @@ hl.env(\"QT_QPA_PLATFORM\", \"wayland;xcb\")
 hl.env(\"ELECTRON_OZONE_PLATFORM_HINT\", \"auto\")
 hl.env(\"LIBVA_DRIVER_NAME\", \"iHD\")
 
--- AUTOSTART
 hl.exec_once(\"dbus-update-activation-environment --systemd WAYLAND_DISPLAY XDG_CURRENT_DESKTOP\")
 hl.exec_once(\"systemctl --user import-environment WAYLAND_DISPLAY XDG_CURRENT_DESKTOP\")
 hl.exec_once(\"waybar\")
 hl.exec_once(\"hyprpaper\")
 hl.exec_once(\"/usr/lib/polkit-kde-authentication-agent-1\")
 
--- INPUT
 hl.input({
     kb_layout = \"latam\",
     follow_mouse = 1,
@@ -231,7 +338,6 @@ hl.input({
     },
 })
 
--- GENERAL
 hl.general({
     gaps_in = 5,
     gaps_out = 10,
@@ -243,7 +349,6 @@ hl.general({
     resize_on_border = true,
 })
 
--- DECORACION
 hl.decoration({
     rounding = 10,
     blur = {
@@ -255,7 +360,6 @@ hl.decoration({
     shadow = { enabled = false },
 })
 
--- ANIMACIONES
 hl.animations({
     enabled = true,
     bezier = { { \"myBezier\", 0.05, 0.9, 0.1, 1.05 } },
@@ -268,17 +372,14 @@ hl.animations({
     },
 })
 
--- DWINDLE
 hl.dwindle({ pseudotile = true, preserve_split = true })
 
--- MISC
 hl.misc({
     disable_hyprland_logo = true,
     disable_splash_rendering = true,
     font_family = \"JetBrains Mono\",
 })
 
--- KEYBINDINGS
 local M = \"SUPER\"
 hl.bind(M .. \", RETURN\", \"exec\", \"kitty\")
 hl.bind(M .. \", E\",      \"exec\", \"dolphin\")
