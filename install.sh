@@ -3,7 +3,7 @@
 #                      DREWOS AUTOMATED CONFIGURATION SCRIPT
 # ===============================================================================
 # Repositorio Oficial: DrewOS Auto-Installer & System Optimizer
-# Compatible con Arch Linux, Garuda Linux, KDE Plasma 6 (Wayland) y Hyprland
+# Compatible con Arch Linux, Garuda Linux y KDE Plasma 6 (Wayland) (+ Hyprland Opcional)
 # ===============================================================================
 
 set -e
@@ -27,8 +27,20 @@ echo "                                        "
 echo "       OFFICIAL AUTO-INSTALLER          "
 echo -e "${RESET}"
 
+# Preguntar si desea instalar Hyprland (Opcional)
+INSTALL_HYPR="n"
+if [ -n "$INSTALL_HYPRLAND" ]; then
+    INSTALL_HYPR="$INSTALL_HYPRLAND"
+elif [ -t 0 ] || [ -c /dev/tty ]; then
+    echo -e "${CYAN}¿Deseas instalar y configurar Hyprland (Dual-Desktop con KDE Plasma)? [s/N]: ${RESET}\c"
+    read -r response < /dev/tty || true
+    if [[ "$response" =~ ^[SsYy]$ ]]; then
+        INSTALL_HYPR="y"
+    fi
+fi
+
 # Solicitar permisos sudo al inicio
-echo -e "${YELLOW}[1/8] Solicitando permisos sudo para la configuración del sistema...${RESET}"
+echo -e "${YELLOW}[1/7] Solicitando permisos sudo para la configuración del sistema...${RESET}"
 sudo -v
 
 # Mantener sudo activo mientras se ejecuta el script
@@ -37,7 +49,7 @@ while true; do sudo -n true; sleep 60; kill -0 "$$" || exit; done 2>/dev/null &
 # -------------------------------------------------------------------------------
 # 1. BRANDING VISUAL DREWOS
 # -------------------------------------------------------------------------------
-echo -e "${GREEN}[2/8] Aplicando branding visual DrewOS (os-release, GRUB, Fastfetch)...${RESET}"
+echo -e "${GREEN}[2/7] Aplicando branding visual DrewOS (os-release, GRUB, Fastfetch)...${RESET}"
 
 sudo rm -f /etc/os-release
 sudo bash -c 'cat << "EOF" > /etc/os-release
@@ -115,7 +127,7 @@ fi
 # -------------------------------------------------------------------------------
 # 2. INSTALACIÓN DE PAQUETES Y SERVICIOS BASE
 # -------------------------------------------------------------------------------
-echo -e "${GREEN}[3/8] Instalando paquetes y activando servicios de optimización...${RESET}"
+echo -e "${GREEN}[3/7] Instalando paquetes y activando servicios de optimización...${RESET}"
 sudo pacman -S --needed --noconfirm fastfetch libva-utils ananicy-cpp gamemode pacman-contrib 2>/dev/null || true
 
 sudo systemctl enable --now ananicy-cpp 2>/dev/null || true
@@ -129,14 +141,14 @@ if command -v balooctl6 &>/dev/null; then
 fi
 
 # -------------------------------------------------------------------------------
-# 3. INSTALACIÓN E INTEGRACIÓN DE HYPRLAND DUAL-DESKTOP
+# 3. INSTALACIÓN OPCIONAL DE HYPRLAND DUAL-DESKTOP
 # -------------------------------------------------------------------------------
-echo -e "${GREEN}[4/8] Instalando y configurando Hyprland para soporte Dual-Desktop (KDE + Hyprland)...${RESET}"
-sudo pacman -S --needed --noconfirm hyprland xdg-desktop-portal-hyprland hyprpaper hyprlock hypridle waybar wofi kitty 2>/dev/null || true
+if [[ "$INSTALL_HYPR" =~ ^[SsYy]$ ]]; then
+  echo -e "${GREEN}[+] Instalando y configurando Hyprland para soporte Dual-Desktop...${RESET}"
+  sudo pacman -S --needed --noconfirm hyprland xdg-desktop-portal-hyprland hyprpaper hyprlock hypridle waybar wofi kitty 2>/dev/null || true
 
-# Crear configuración de Hyprland para el usuario
-sudo -u "$REAL_USER" mkdir -p "$USER_HOME/.config/hypr"
-sudo -u "$REAL_USER" bash -c "cat << 'EOF' > '$USER_HOME/.config/hypr/hyprland.conf'
+  sudo -u "$REAL_USER" mkdir -p "$USER_HOME/.config/hypr"
+  sudo -u "$REAL_USER" bash -c "cat << 'EOF' > '$USER_HOME/.config/hypr/hyprland.conf'
 monitor=,preferred,auto,1
 
 exec-once = dbus-update-activation-environment --systemd WAYLAND_DISPLAY XDG_CURRENT_DESKTOP=Hyprland
@@ -213,9 +225,8 @@ bindm = \$mainMod, mouse:272, movewindow
 bindm = \$mainMod, mouse:273, resizewindow
 EOF"
 
-# Configuración Waybar
-sudo -u "$REAL_USER" mkdir -p "$USER_HOME/.config/waybar"
-sudo -u "$REAL_USER" bash -c "cat << 'EOF' > '$USER_HOME/.config/waybar/config.jsonc'
+  sudo -u "$REAL_USER" mkdir -p "$USER_HOME/.config/waybar"
+  sudo -u "$REAL_USER" bash -c "cat << 'EOF' > '$USER_HOME/.config/waybar/config.jsonc'
 {
     \"layer\": \"top\",
     \"position\": \"top\",
@@ -233,18 +244,21 @@ sudo -u "$REAL_USER" bash -c "cat << 'EOF' > '$USER_HOME/.config/waybar/config.j
 }
 EOF"
 
-sudo -u "$REAL_USER" bash -c "cat << 'EOF' > '$USER_HOME/.config/waybar/style.css'
+  sudo -u "$REAL_USER" bash -c "cat << 'EOF' > '$USER_HOME/.config/waybar/style.css'
 * { border: none; font-family: 'JetBrains Mono', sans-serif; font-size: 13px; }
 window#waybar { background-color: rgba(18, 18, 24, 0.85); color: #ffffff; border-bottom: 2px solid #33ccff; }
 #workspaces button { padding: 0 8px; color: #888888; }
 #workspaces button.active { color: #33ccff; border-bottom: 2px solid #00ff99; }
 #clock, #battery, #cpu, #memory, #network, #pulseaudio, #tray { padding: 0 10px; margin: 2px 4px; border-radius: 6px; background-color: rgba(255, 255, 255, 0.1); }
 EOF"
+else
+  echo -e "${YELLOW}[!] Omitiendo instalación de Hyprland. Se mantendrá el entorno gráfico predeterminado.${RESET}"
+fi
 
 # -------------------------------------------------------------------------------
 # 4. ENTORNO GLOBAL WAYLAND Y ACELERACIÓN GPU ELECTRON / FLATPAK
 # -------------------------------------------------------------------------------
-echo -e "${GREEN}[5/8] Configurando Wayland nativo y aceleración por GPU Intel (VA-API)...${RESET}"
+echo -e "${GREEN}[4/7] Configurando Wayland nativo y aceleración por GPU Intel (VA-API)...${RESET}"
 
 sudo -u "$REAL_USER" mkdir -p "$USER_HOME/.config/environment.d"
 sudo -u "$REAL_USER" bash -c "cat << 'EOF' > '$USER_HOME/.config/environment.d/wayland.conf'
@@ -307,7 +321,7 @@ fi
 # -------------------------------------------------------------------------------
 # 5. CONFIGURACIÓN DE SPICETIFY (SPOTIFY THEMES)
 # -------------------------------------------------------------------------------
-echo -e "${GREEN}[6/8] Configurando Spicetify para Spotify...${RESET}"
+echo -e "${GREEN}[5/7] Configurando Spicetify para Spotify...${RESET}"
 if command -v spicetify &>/dev/null; then
   sudo -u "$REAL_USER" spicetify config overwrite_assets 1 inject_css 1 replace_colors 1 inject_theme_js 1 2>/dev/null || true
   sudo -u "$REAL_USER" spicetify apply 2>/dev/null || true
@@ -316,7 +330,7 @@ fi
 # -------------------------------------------------------------------------------
 # 6. OPTIMIZACIÓN MÁXIMA DE WI-FI 6 E INTERNET (GOOGLE BBR)
 # -------------------------------------------------------------------------------
-echo -e "${GREEN}[7/8] Optimizando Wi-Fi (Power Save OFF) y activando Google BBR TCP...${RESET}"
+echo -e "${GREEN}[6/7] Optimizando Wi-Fi (Power Save OFF) y activando Google BBR TCP...${RESET}"
 
 # Desactivar Power Save en NetworkManager
 sudo mkdir -p /etc/NetworkManager/conf.d
@@ -354,7 +368,7 @@ sudo systemctl restart NetworkManager 2>/dev/null || true
 # -------------------------------------------------------------------------------
 # 7. CONFIGURACIÓN DE TECLADO LATAM
 # -------------------------------------------------------------------------------
-echo -e "${GREEN}[8/8] Estableciendo idioma de teclado en Español Latinoamérica (LATAM)...${RESET}"
+echo -e "${GREEN}[7/7] Estableciendo idioma de teclado en Español Latinoamérica (LATAM)...${RESET}"
 sudo localectl set-keymap latam 2>/dev/null || true
 sudo localectl set-x11-keymap latam 2>/dev/null || true
 
@@ -372,6 +386,6 @@ VariantList=
 EOF"
 
 echo -e "\n${CYAN}${BOLD}===============================================================================${RESET}"
-echo -e "${CYAN}${BOLD}   ¡CONFIGURACIÓN DE DREWOS (KDE + HYPRLAND) APLICADA CON ÉXITO!   ${RESET}"
+echo -e "${CYAN}${BOLD}   ¡CONFIGURACIÓN DE DREWOS APLICADA CON ÉXITO A TU SISTEMA!   ${RESET}"
 echo -e "${CYAN}${BOLD}===============================================================================${RESET}"
-echo -e "${YELLOW}Puedes seleccionar KDE Plasma o Hyprland en la pantalla de inicio (SDDM).${RESET}\n"
+echo -e "${YELLOW}Ejecuta 'fastfetch' para ver el nuevo branding o abre una nueva terminal.${RESET}\n"

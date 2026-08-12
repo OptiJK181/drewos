@@ -35,9 +35,9 @@ curl -sSL https://raw.githubusercontent.com/OptiJK181/drewos/main/install.sh | b
 
 ## ✨ Características Principales
 
-### 🪟 1. Soporte Dual Desktop (KDE Plasma 6 + Hyprland)
-- Soluciona la limitación de Garuda al permitir **KDE Plasma 6** y **Hyprland** simultáneamente en el gestor de sesiones (SDDM).
-- Incluye configuración predefinida de **Hyprland** (`hyprland.conf`), **Waybar** estilizado (`waybar`), lanzador de apps (`wofi`), terminal (`kitty`), daemon de fondos (`hyprpaper`) y bloqueo de pantalla (`hyprlock`).
+### 🪟 1. Soporte Dual Desktop Elegible (KDE Plasma 6 + Hyprland Opcional)
+- El instalador te **pregunta de forma interactiva** si deseas instalar Hyprland o mantener únicamente tu entorno actual (KDE Plasma 6).
+- Si eliges **Sí**, configura e instala automáticamente **Hyprland** (`hyprland.conf`), **Waybar** estilizado (`waybar`), lanzador de apps (`wofi`), terminal (`kitty`), daemon de fondos (`hyprpaper`) y bloqueo de pantalla (`hyprlock`).
 - Configuración de teclado **Español Latinoamérica (LATAM)** nativa en ambos entornos.
 
 ### 🎨 2. Personalización de Marca (DrewOS)
