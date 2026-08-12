@@ -130,7 +130,8 @@ sudo -u "$REAL_USER" bash -c "cat << 'EOF' > '$USER_HOME/.config/fastfetch/confi
 EOF"
 
 # Hook en Fish shell si existe
-if [ -d "$USER_HOME/.config/fish" ]; then
+if [ -f "$USER_HOME/.config/fish/config.fish" ]; then
+  sudo -u "$REAL_USER" sed -i 's/fastfetch --logo.*/fastfetch/' "$USER_HOME/.config/fish/config.fish" 2>/dev/null || true
   if ! grep -q "fastfetch" "$USER_HOME/.config/fish/config.fish" 2>/dev/null; then
     echo -e "\n# DrewOS Fastfetch\nfastfetch" >> "$USER_HOME/.config/fish/config.fish"
   fi
