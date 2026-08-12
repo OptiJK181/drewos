@@ -39,8 +39,8 @@ elif [ -t 0 ] || [ -c /dev/tty ]; then
     if [[ "$response" =~ ^[SsYy]$ ]]; then
         INSTALL_HYPR="y"
         
-        # Opción 2: Instalar Dotfiles de ilyamiro (serpantinum)
-        echo -e "${CYAN}¿Deseas clonar los Dotfiles oficiales de ilyamiro (serpantinum)? [s/N]: ${RESET}\c"
+        # Opción 2: Ejcutar instalador oficial de ilyamiro (imperative-dots)
+        echo -e "${CYAN}¿Deseas ejecutar el instalador oficial de Dotfiles de ilyamiro? [s/N]: ${RESET}\c"
         read -r response_ilyamiro < /dev/tty || true
         if [[ "$response_ilyamiro" =~ ^[SsYy]$ ]]; then
             INSTALL_ILYAMIRO="y"
@@ -137,7 +137,7 @@ fi
 # 2. INSTALACIÓN DE PAQUETES Y SERVICIOS BASE
 # -------------------------------------------------------------------------------
 echo -e "${GREEN}[3/7] Instalando paquetes y activando servicios de optimización...${RESET}"
-sudo pacman -S --needed --noconfirm fastfetch libva-utils ananicy-cpp gamemode pacman-contrib git 2>/dev/null || true
+sudo pacman -S --needed --noconfirm fastfetch libva-utils ananicy-cpp gamemode pacman-contrib git curl 2>/dev/null || true
 
 sudo systemctl enable --now ananicy-cpp 2>/dev/null || true
 sudo systemctl enable --now fstrim.timer 2>/dev/null || true
@@ -157,10 +157,8 @@ if [[ "$INSTALL_HYPR" =~ ^[SsYy]$ ]]; then
   sudo pacman -S --needed --noconfirm hyprland xdg-desktop-portal-hyprland hyprpaper hyprlock hypridle waybar wofi kitty 2>/dev/null || true
 
   if [[ "$INSTALL_ILYAMIRO" =~ ^[SsYy]$ ]]; then
-    echo -e "${GREEN}[+] Clonando repositorio oficial de ilyamiro (serpantinum) en ~/serpantinum...${RESET}"
-    sudo -u "$REAL_USER" rm -rf "$USER_HOME/serpantinum"
-    sudo -u "$REAL_USER" git clone --depth 1 https://github.com/ilyamiro/serpantinum "$USER_HOME/serpantinum" 2>/dev/null || true
-    echo -e "${YELLOW}[!] Repositorio ilyamiro/serpantinum clonado en $USER_HOME/serpantinum.${RESET}"
+    echo -e "${GREEN}[+] Ejecutando instalador oficial de Dotfiles de ilyamiro (imperative-dots)...${RESET}"
+    sudo -u "$REAL_USER" bash -c "$(curl -fsSL https://raw.githubusercontent.com/ilyamiro/imperative-dots/master/install.sh)" || true
   else
     echo -e "${GREEN}[+] Aplicando configuración nativa y estable de Hyprland para Arch/Garuda...${RESET}"
     sudo -u "$REAL_USER" mkdir -p "$USER_HOME/.config/hypr"
