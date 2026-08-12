@@ -50,3 +50,4 @@ Todos los logos oficiales (PNG y ASCII) están disponibles en la carpeta [`logos
 ```
 
 *DrewOS - Creado por Drew* 🌪️
+SE RECOMIENDA ALTAMENTE GARUDA LINUX EN MOKKA KDE SI SE QUIERE LO MEJOR DE LO MEJOR
