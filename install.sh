@@ -52,8 +52,32 @@ DOCUMENTATION_URL="https://wiki.garudalinux.org/"
 SUPPORT_URL="https://forum.garudalinux.org/"
 BUG_REPORT_URL="https://gitlab.com/groups/garuda-linux/"
 PRIVACY_POLICY_URL="https://terms.archlinux.org/docs/privacy-policy/"
-LOGO=garudalinux
+LOGO=drewos
 EOF'
+
+# Instalar Logo de Imagen PNG de DrewOS en el sistema (KDE Plasma, Apps)
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" 2>/dev/null && pwd)"
+if [ -f "$SCRIPT_DIR/logos/tornado.png" ]; then
+  sudo cp "$SCRIPT_DIR/logos/tornado.png" /usr/share/pixmaps/drewos.png 2>/dev/null || true
+  sudo cp "$SCRIPT_DIR/logos/tornado.png" /usr/share/pixmaps/drewos-logo.png 2>/dev/null || true
+  sudo cp "$SCRIPT_DIR/logos/tornado.png" /usr/share/pixmaps/garudalinux-logo.png 2>/dev/null || true
+  sudo mkdir -p /usr/share/icons/hicolor/scalable/apps /usr/share/icons/hicolor/256x256/apps 2>/dev/null || true
+  sudo cp "$SCRIPT_DIR/logos/tornado.png" /usr/share/icons/hicolor/scalable/apps/drewos.png 2>/dev/null || true
+  sudo cp "$SCRIPT_DIR/logos/tornado.png" /usr/share/icons/hicolor/256x256/apps/drewos.png 2>/dev/null || true
+  sudo cp "$SCRIPT_DIR/logos/tornado.png" /usr/share/icons/hicolor/scalable/apps/distributor-logo-drewos.png 2>/dev/null || true
+  sudo cp "$SCRIPT_DIR/logos/tornado.png" /usr/share/icons/hicolor/scalable/apps/distributor-logo-garudalinux.png 2>/dev/null || true
+  sudo gtk-update-icon-cache -f /usr/share/icons/hicolor 2>/dev/null || true
+elif [ -f "$USER_HOME/Logos DrewOS/tornado.png" ]; then
+  sudo cp "$USER_HOME/Logos DrewOS/tornado.png" /usr/share/pixmaps/drewos.png 2>/dev/null || true
+  sudo cp "$USER_HOME/Logos DrewOS/tornado.png" /usr/share/pixmaps/drewos-logo.png 2>/dev/null || true
+  sudo cp "$USER_HOME/Logos DrewOS/tornado.png" /usr/share/pixmaps/garudalinux-logo.png 2>/dev/null || true
+  sudo mkdir -p /usr/share/icons/hicolor/scalable/apps /usr/share/icons/hicolor/256x256/apps 2>/dev/null || true
+  sudo cp "$USER_HOME/Logos DrewOS/tornado.png" /usr/share/icons/hicolor/scalable/apps/drewos.png 2>/dev/null || true
+  sudo cp "$USER_HOME/Logos DrewOS/tornado.png" /usr/share/icons/hicolor/256x256/apps/drewos.png 2>/dev/null || true
+  sudo cp "$USER_HOME/Logos DrewOS/tornado.png" /usr/share/icons/hicolor/scalable/apps/distributor-logo-drewos.png 2>/dev/null || true
+  sudo cp "$USER_HOME/Logos DrewOS/tornado.png" /usr/share/icons/hicolor/scalable/apps/distributor-logo-garudalinux.png 2>/dev/null || true
+  sudo gtk-update-icon-cache -f /usr/share/icons/hicolor 2>/dev/null || true
+fi
 
 sudo bash -c 'cat << "EOF" > /etc/lsb-release
 DISTRIB_ID=DrewOS
