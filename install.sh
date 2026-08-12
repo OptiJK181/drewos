@@ -135,8 +135,8 @@ if [ -t 0 ] || [ -c /dev/tty ]; then
     echo -e "${CYAN}¿Deseas instalar Hyprland (Dual-Desktop con KDE Plasma)? [s/N]: ${RESET}\c"
     read -r response < /dev/tty || true
     if [[ "$response" =~ ^[SsYy]$ ]]; then
-        echo -e "${GREEN}[+] Instalando paquetes de Hyprland de inmediato...${RESET}"
-        sudo pacman -S --needed --noconfirm hyprland xdg-desktop-portal-hyprland hyprpaper hyprlock hypridle waybar wofi kitty 2>/dev/null || true
+        echo -e "${GREEN}[+] Instalando paquetes base de Hyprland + hyprlang2lua (Lua config, ready for 0.57+)...${RESET}"
+        sudo pacman -S --needed --noconfirm hyprland xdg-desktop-portal-hyprland hyprpaper hyprlock hypridle waybar wofi kitty hyprlang2lua 2>/dev/null || true
 
         echo -e "${CYAN}¿Deseas ejecutar de inmediato el instalador oficial de Dotfiles de ilyamiro? [s/N]: ${RESET}\c"
         read -r response_ilyamiro < /dev/tty || true
@@ -144,107 +144,116 @@ if [ -t 0 ] || [ -c /dev/tty ]; then
             echo -e "${GREEN}[+] Ejecutando instalador oficial de ilyamiro (imperative-dots) EN VIVO...${RESET}"
             sudo -u "$REAL_USER" bash -c "$(curl -fsSL https://raw.githubusercontent.com/ilyamiro/imperative-dots/master/install.sh)" || true
         else
-            echo -e "${GREEN}[+] Aplicando configuración nativa y limpia de Hyprland para Arch/Garuda...${RESET}"
+            echo -e "${GREEN}[+] Aplicando configuración DrewOS en formato Lua (compatible Hyprland 0.57+)...${RESET}"
             sudo -u "$REAL_USER" mkdir -p "$USER_HOME/.config/hypr"
-            sudo -u "$REAL_USER" bash -c "cat << 'EOF' > '$USER_HOME/.config/hypr/hyprland.conf'
-monitor=,preferred,auto,1
+            sudo -u "$REAL_USER" bash -c "cat << 'EOF' > '$USER_HOME/.config/hypr/hyprland.lua'
+-- =============================================================================
+--                     DREWOS HYPRLAND CONFIG (LUA)
+--          Compatible con Hyprland 0.55+ / 0.57+ - Formato Lua nativo
+-- =============================================================================
 
-env = XDG_CURRENT_DESKTOP,Hyprland
-env = XDG_SESSION_TYPE,wayland
-env = XDG_SESSION_DESKTOP,Hyprland
-env = QT_QPA_PLATFORM,wayland;xcb
-env = ELECTRON_OZONE_PLATFORM_HINT,auto
+-- MONITORES
+hl.monitor(\"\", \"preferred\", \"auto\", 1)
 
-exec-once = dbus-update-activation-environment --systemd WAYLAND_DISPLAY XDG_CURRENT_DESKTOP
-exec-once = systemctl --user import-environment WAYLAND_DISPLAY XDG_CURRENT_DESKTOP
-exec-once = waybar &
-exec-once = hyprpaper &
-exec-once = /usr/lib/polkit-kde-authentication-agent-1 &
+-- VARIABLES DE ENTORNO
+hl.env(\"XDG_CURRENT_DESKTOP\", \"Hyprland\")
+hl.env(\"XDG_SESSION_TYPE\", \"wayland\")
+hl.env(\"XDG_SESSION_DESKTOP\", \"Hyprland\")
+hl.env(\"QT_QPA_PLATFORM\", \"wayland;xcb\")
+hl.env(\"ELECTRON_OZONE_PLATFORM_HINT\", \"auto\")
+hl.env(\"LIBVA_DRIVER_NAME\", \"iHD\")
 
-input {
-    kb_layout = latam
-    kb_variant =
-    kb_model = pc105
-    follow_mouse = 1
-    touchpad {
-        natural_scroll = true
-    }
-    sensitivity = 0
-}
+-- AUTOSTART
+hl.exec_once(\"dbus-update-activation-environment --systemd WAYLAND_DISPLAY XDG_CURRENT_DESKTOP\")
+hl.exec_once(\"systemctl --user import-environment WAYLAND_DISPLAY XDG_CURRENT_DESKTOP\")
+hl.exec_once(\"waybar\")
+hl.exec_once(\"hyprpaper\")
+hl.exec_once(\"/usr/lib/polkit-kde-authentication-agent-1\")
 
-general {
-    gaps_in = 5
-    gaps_out = 10
-    border_size = 2
-    col.active_border = rgba(33ccffee) rgba(00ff99ee) 45deg
-    col.inactive_border = rgba(595959aa)
-    layout = dwindle
-    allow_tearing = false
-}
+-- INPUT
+hl.input({
+    kb_layout = \"latam\",
+    follow_mouse = 1,
+    sensitivity = 0,
+    accel_profile = \"flat\",
+    touchpad = {
+        natural_scroll = true,
+        tap_to_click = true,
+    },
+})
 
-decoration {
-    rounding = 10
-    blur {
-        enabled = true
-        size = 5
-        passes = 2
-        vibrancy = 0.1696
-    }
-    shadow {
-        enabled = false
-    }
-}
+-- GENERAL
+hl.general({
+    gaps_in = 5,
+    gaps_out = 10,
+    border_size = 2,
+    [\"col.active_border\"] = \"rgba(33ccffee) rgba(00ff99ee) 45deg\",
+    [\"col.inactive_border\"] = \"rgba(595959aa)\",
+    layout = \"dwindle\",
+    allow_tearing = false,
+    resize_on_border = true,
+})
 
-animations {
-    enabled = true
-    bezier = myBezier, 0.05, 0.9, 0.1, 1.05
-    animation = windows, 1, 7, myBezier
-    animation = windowsOut, 1, 7, default, popin 80%
-    animation = border, 1, 10, default
-    animation = borderangle, 1, 8, default
-    animation = fade, 1, 7, default
-    animation = workspaces, 1, 6, default
-}
+-- DECORACION
+hl.decoration({
+    rounding = 10,
+    blur = {
+        enabled = true,
+        size = 5,
+        passes = 2,
+        vibrancy = 0.1696,
+    },
+    shadow = { enabled = false },
+})
 
-dwindle {
-    pseudotile = true
-    preserve_split = true
-}
+-- ANIMACIONES
+hl.animations({
+    enabled = true,
+    bezier = { { \"myBezier\", 0.05, 0.9, 0.1, 1.05 } },
+    animation = {
+        { \"windows\",     1, 7, \"myBezier\" },
+        { \"windowsOut\",  1, 7, \"default\", \"popin 80%\" },
+        { \"border\",      1, 10, \"default\" },
+        { \"fade\",        1, 7, \"default\" },
+        { \"workspaces\",  1, 6, \"default\" },
+    },
+})
 
-\$mainMod = SUPER
+-- DWINDLE
+hl.dwindle({ pseudotile = true, preserve_split = true })
 
-bind = \$mainMod, RETURN, exec, kitty
-bind = \$mainMod, Q, killactive,
-bind = \$mainMod, M, exit,
-bind = \$mainMod, E, exec, dolphin
-bind = \$mainMod, V, togglefloating,
-bind = \$mainMod, R, exec, wofi --show drun || rofi -show drun
-bind = \$mainMod, D, exec, wofi --show drun || rofi -show drun
+-- MISC
+hl.misc({
+    disable_hyprland_logo = true,
+    disable_splash_rendering = true,
+    font_family = \"JetBrains Mono\",
+})
 
-bind = \$mainMod, left, movefocus, l
-bind = \$mainMod, right, movefocus, r
-bind = \$mainMod, up, movefocus, u
-bind = \$mainMod, down, movefocus, d
-
-bind = \$mainMod, 1, workspace, 1
-bind = \$mainMod, 2, workspace, 2
-bind = \$mainMod, 3, workspace, 3
-bind = \$mainMod, 4, workspace, 4
-bind = \$mainMod, 5, workspace, 5
-bind = \$mainMod, 6, workspace, 6
-bind = \$mainMod, 7, workspace, 7
-bind = \$mainMod, 8, workspace, 8
-bind = \$mainMod, 9, workspace, 9
-bind = \$mainMod, 0, workspace, 10
-
-bind = \$mainMod SHIFT, 1, movetoworkspace, 1
-bind = \$mainMod SHIFT, 2, movetoworkspace, 2
-bind = \$mainMod SHIFT, 3, movetoworkspace, 3
-bind = \$mainMod SHIFT, 4, movetoworkspace, 4
-bind = \$mainMod SHIFT, 5, movetoworkspace, 5
-
-bindm = \$mainMod, mouse:272, movewindow
-bindm = \$mainMod, mouse:273, resizewindow
+-- KEYBINDINGS
+local M = \"SUPER\"
+hl.bind(M .. \", RETURN\", \"exec\", \"kitty\")
+hl.bind(M .. \", E\",      \"exec\", \"dolphin\")
+hl.bind(M .. \", R\",      \"exec\", \"wofi --show drun\")
+hl.bind(M .. \", D\",      \"exec\", \"wofi --show drun\")
+hl.bind(M .. \", Q\",      \"killactive\")
+hl.bind(M .. \", M\",      \"exit\")
+hl.bind(M .. \", V\",      \"togglefloating\")
+hl.bind(M .. \", F\",      \"fullscreen\", \"0\")
+hl.bind(M .. \", left\",   \"movefocus\", \"l\")
+hl.bind(M .. \", right\",  \"movefocus\", \"r\")
+hl.bind(M .. \", up\",     \"movefocus\", \"u\")
+hl.bind(M .. \", down\",   \"movefocus\", \"d\")
+for i = 1, 10 do
+    local key = tostring(i == 10 and 0 or i)
+    hl.bind(M .. \", \" .. key,       \"workspace\",       tostring(i))
+    hl.bind(M .. \" SHIFT, \" .. key, \"movetoworkspace\", tostring(i))
+end
+hl.bind(M .. \", S\",           \"togglespecialworkspace\", \"magic\")
+hl.bind(M .. \" SHIFT, S\",     \"movetoworkspace\",        \"special:magic\")
+hl.bind(M .. \", mouse_down\",  \"workspace\", \"e+1\")
+hl.bind(M .. \", mouse_up\",    \"workspace\", \"e-1\")
+hl.bindm(M .. \", mouse:272\",  \"movewindow\")
+hl.bindm(M .. \", mouse:273\",  \"resizewindow\")
 EOF"
 
             sudo -u "$REAL_USER" mkdir -p "$USER_HOME/.config/waybar"
