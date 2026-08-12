@@ -1,31 +1,25 @@
-# 🚀 DrewOS Config & Performance Suite
+# 🌪️ DrewOS - Survivor Edition
 
-<div align="center">
+> *"Diles NO a las barras dobles de Quickshell y a los colapsos de Lua en Hyprland."*
 
-```text
-  ____  ____  ________  _  ____  ____  
- /  _ \/  __\/  __/ \  //\/  _ \/ ___\ 
- | | \||  \/||  \  | | |||| / \|    \ 
- | |_/||    /|  /_ | |/\/\/\ \_/|\___ |
- \____/\_/\_/\____/\_/\_/  \____/\____/ 
-                                        
-```
-
-**Auto-instalador y suite de optimizaciones extremas para Arch Linux, Garuda Linux, KDE Plasma 6 (Wayland) y Hyprland**
-
-[![OS](https://img.shields.io/badge/OS-Arch%20%7C%20Garuda%20%7C%20DrewOS-blue.svg)](https://archlinux.org)
-[![Desktops](https://img.shields.io/badge/Desktops-KDE%20Plasma%206%20%7C%20Hyprland-cyan.svg)](https://hyprland.org)
-[![Display Server](https://img.shields.io/badge/Display-Wayland%20180Hz-purple.svg)](https://wayland.freedesktop.org)
-[![Network](https://img.shields.io/badge/Network-Google%20BBR%20%2B%20Wi--Fi%206-brightgreen.svg)](https://github.com/google/bbr)
-[![License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-
-</div>
+**DrewOS** es una distribución optimizada basada en **Garudalinux / Arch Linux**, diseñada para un rendimiento extremo de juegos, multitarea fluida, aceleración de video por hardware e identidad visual propia con el logo **Tornado ASCII**.
 
 ---
 
-## ⚡ Instalación Rápida (1 Solo Comando)
+## 🚀 Características Principales
 
-Para transformar tu sistema y aplicar todas las optimizaciones automáticamente, abre tu terminal y ejecuta:
+- **🌪️ Visual Identity**: Logo Tornado en Fastfetch (`drewos_logo.txt`) e imágenes de marca en la información del sistema KDE Plasma.
+- **🖥️ Multi-Desktop Ready**: 4 Escritorios Virtuales fluidos en KDE Plasma 6 (Wayland) con soporte opcional para escritorios secundarios de respaldo.
+- **🚀 Maximized Network**: Wi-Fi 6 Power Save OFF + Google BBR TCP Congestion Control para latencia ultra-baja.
+- **⚡ Peak Performance**: CPU Auto-Tuning con `ananicy-cpp`, `gamemode` automático para juegos y mantenimiento SSD TRIM automático.
+- **🎵 Spotify & Media**: Aceleración por GPU en apps Electron (Spotify, Discord, Vesktop).
+- **⌨️ Teclado LATAM**: Configuración persistente de teclado en Español Latinoamérica.
+
+---
+
+## 📦 Instalación Rápida (1 Solo Comando)
+
+Abre cualquier terminal y ejecuta:
 
 ```bash
 curl -sSL https://raw.githubusercontent.com/OptiJK181/drewos/main/install.sh | bash
@@ -33,58 +27,26 @@ curl -sSL https://raw.githubusercontent.com/OptiJK181/drewos/main/install.sh | b
 
 ---
 
-## ✨ Características Principales
+## 🎨 Logos e Imágenes
+Todos los logos oficiales (PNG y ASCII) están disponibles en la carpeta [`logos/`](file:///home/drew/drewos/logos/) del repositorio y en `~/Logos DrewOS/` en tu sistema.
 
-### 🪟 1. Soporte Dual Desktop Elegible (KDE Plasma 6 + Hyprland + Serpantinum Dotfiles)
-- El instalador te **pregunta de forma interactiva** si deseas instalar Hyprland o mantener únicamente tu entorno actual (KDE Plasma 6).
-- Si eliges **Sí**, clona e integra automáticamente la suit de **Dotfiles de [Serpantinum (ilyamiro)](https://github.com/ilyamiro/serpantinum)**:
-  - Estructura modular de **Hyprland** (`hyprland.conf`, `settings.conf`, `keybindings.conf`, `rules.conf`, `monitors.conf`).
-  - Terminal **Kitty**, lanzador de temas **Rofi**, visualizador **Cava** y control de volumen **SwayOSD**.
-- Mantiene la configuración de teclado en **Español Latinoamérica (LATAM)** nativa.
-
-### 🎨 2. Personalización de Marca (DrewOS)
-- Actualiza automáticamente la identidad visual en **Fastfetch**, **Información del Sistema KDE Plasma** y **GRUB Bootloader**.
-- Mantiene 100% de compatibilidad interna con repositorios de Arch Linux, `pacman` y herramientas de sistema.
-
-### 🚀 3. Wayland Nativo & Aceleración Gráfica (180 Hz)
-- Fuerza el renderizado Wayland nativo (Ozone Platform) en aplicaciones Electron como **Spotify** y **Vesktop (Discord)** eliminando el lag de XWayland.
-- Habilita aceleración por hardware por GPU Intel (VA-API / `iHD` driver).
-
-### 🎵 4. Spotify + Spicetify Integration
-- Configura permisos y banderas `overwrite_assets` en Spotify Flatpak.
-- Habilita la tienda de temas **Spicetify Marketplace** de forma nativa.
-
-### 🌐 5. Redes & Wi-Fi de Ultra Alta Velocidad
-- **Wi-Fi Power Save OFF**: Desactiva el ahorro de energía en tarjetas Intel Wi-Fi 6 (`iwlwifi`), eliminando picos de ping (jitter).
-- **Google BBR TCP**: Habilita el algoritmo de control de congestión de Google (`tcp_bbr`) con colas FQ y ventanas TCP maximizadas a 16MB.
-
-### ⚙️ 6. CPU & Mantenimiento Autónomo
-- Integra `ananicy-cpp` para priorizar dinámicamente CPU e I/O de disco hacia la ventana enfocada.
-- Activa `gamemode` para maximizar frecuencias en juegos.
-- Configura temporizadores automáticos de mantenimiento para SSD (`fstrim.timer`) y limpia la caché de pacman (`paccache.timer`).
-- Desactiva demonios innecesarios como `ModemManager` y `Baloo` (indexador de KDE) para un arranque ultrarrápido.
-
----
-
-## 📋 Requisitos
-- **SO**: Arch Linux, Garuda Linux o distribuciones derivadas.
-- **Entorno de Escritorio**: KDE Plasma 6 (Wayland) o Hyprland.
-- **Permisos**: Usuario con acceso `sudo`.
-
----
-
-## 🛠️ Instalación Manual
-
-Si prefieres clonar el repositorio e inspeccionar el código antes de ejecutarlo:
-
-```bash
-git clone https://github.com/OptiJK181/drewos.git
-cd drewos
-chmod +x install.sh
-./install.sh
+```
+          -_-_-_-_-_-_-_-_-_-_-_-_---
+           -_-_-_-_-_-_-_-_-_-_-_--
+            -_-_-_-_-_-_-_-_-_-_--
+              -_-_-_-_-_-_-_-_-_-
+               -_-_-_-_-_-_-_-_-
+                 -_-_-_-_-_-_--
+                   -_-_-_-_-_-
+                    -_-_-_-_-
+                      -_-__-
+                       _-_-
+                      _-_
+                     _-
+                     -_
+                    _-_
+                   _-_-_
+                  -_-_-_-_
 ```
 
----
-
-## 📄 Licencia
-Este proyecto está bajo la Licencia **MIT**. Consulta el archivo [LICENSE](LICENSE) para más detalles.
+*DrewOS - Creado por Drew* 🌪️
